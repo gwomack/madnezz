@@ -1,0 +1,15 @@
+models:
+  Produto:
+    id: id
+    nome: string
+    preco: integer
+    descricao: text
+    foto: text
+    categoria: string
+    timestamps
+    softDeletes
+
+controllers:
+  Produto:
+    resource
+
