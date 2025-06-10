@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\Categoria;
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ProdutoStoreRequest extends FormRequest
@@ -20,8 +22,25 @@ class ProdutoStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome' => ['required', 'string'],
-            'preco' => ['required', 'string'],
+            'nome' => ['required', 'string', 'max:255'],
+            'preco' => ['required', 'numeric', 'min:0.01'],
+            'descricao' => ['nullable', 'text'],
+            'foto' => ['nullable', 'image', 'max:2048'],
+            'categoria' => ['required', 'string', Rule::in(Categoria::cases())],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'nome.required' => 'O campo :attribute é obrigatório.',
+            'preco.required' => 'O campo :attribute é obrigatório.',
+            'preco.min' => 'O :attribute precisa ser maior que :min.',
+            'descricao.required' => 'O campo :attribute é obrigatório.',
+            'foto.image' => 'O campo :attribute deve ser uma imagem.',
+            'foto.max' => 'O campo :attribute deve ter no máximo :max KB.',
+            'categoria.required' => 'O campo :attribute é obrigatório.',
+            'categoria.in' => 'O campo :attribute deve ser uma categoria válida.',
         ];
     }
 }

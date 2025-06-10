@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Produto extends Model
 {
@@ -18,6 +19,9 @@ class Produto extends Model
     protected $fillable = [
         'nome',
         'preco',
+        'descricao',
+        'foto',
+        'categoria',
     ];
 
     /**
@@ -30,5 +34,13 @@ class Produto extends Model
         return [
             'id' => 'integer',
         ];
+    }
+
+    protected function preco(): Attribute
+    {
+        return Attribute::make(
+            get: fn (string $value) => number_format($value / 100, 2),
+            set: fn (string $value) => str_replace('.', '', $value),
+        );
     }
 }

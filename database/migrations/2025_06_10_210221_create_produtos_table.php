@@ -15,8 +15,8 @@ return new class extends Migration
             $table->id();
             $table->string('nome');
             $table->unsignedInteger('preco');
-            $table->text('descricao');
-            $table->text('foto');
+            $table->text('descricao')->nullable();
+            $table->text('foto')->nullable();
             $table->string('categoria');
             $table->timestamps();
             $table->softDeletes();

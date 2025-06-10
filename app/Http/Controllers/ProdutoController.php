@@ -2,29 +2,32 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProdutoStoreRequest;
-use App\Http\Requests\ProdutoUpdateRequest;
-use App\Models\Produto;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\View\View;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Models\Produto;
+use App\Enums\Categoria;
+use Illuminate\View\View;
+use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\ProdutoStoreRequest;
+use App\Http\Requests\ProdutoUpdateRequest;
 
 class ProdutoController extends Controller
 {
     public function index(Request $request): Response
     {
-        $produtos = Produto::all();
+        $produtos = Produto::paginate(10);
 
         return Inertia::render('Produto/Index', [
-            'produtos' => $produtos,
+            'produtos' => $produtos
         ]);
     }
 
     public function create(Request $request): Response
     {
-        return Inertia::render('Produto/Create');
+        return Inertia::render('Produto/Create', [
+            'categorias' => Categoria::toSelect(),
+        ]);
     }
 
     public function store(ProdutoStoreRequest $request): RedirectResponse
