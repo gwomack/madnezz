@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Categoria;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -33,14 +34,15 @@ class Produto extends Model
     {
         return [
             'id' => 'integer',
+            'categoria' => Categoria::class,
         ];
     }
 
     protected function preco(): Attribute
     {
         return Attribute::make(
-            get: fn (string $value) => number_format($value / 100, 2),
-            set: fn (string $value) => str_replace('.', '', $value),
+            get: fn (string $value) => preco_db_to_front($value),
+            set: fn (string $value) => preco_front_to_db($value),
         );
-    }
+    }   
 }

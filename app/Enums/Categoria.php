@@ -4,16 +4,16 @@ namespace App\Enums;
 
 enum Categoria: string
 {
-    case Eletronicos = 'eletronicos';
-    case Vestuario = 'vestuario';
-    case Acessorios = 'acessorios';
+    case eletronicos = 'eletronicos';
+    case vestuario = 'vestuario';
+    case acessorios = 'acessorios';
 
     public function getLabel(): string
     {
         return match ($this) {
-            self::Eletronicos => 'Eletrônicos',
-            self::Vestuario => 'Vestuário',
-            self::Acessorios => 'Acessórios',
+            self::eletronicos => 'Eletrônicos',
+            self::vestuario => 'Vestuário',
+            self::acessorios => 'Acessórios',
             default => 'Eletrônicos',
         };
     }

@@ -10,16 +10,40 @@ import { Button } from '@/components/ui/button';
 import { LoaderCircle } from 'lucide-react';
 
 
-const breadcrumbs: BreadcrumbItem[] = [
+const getBreadcrumbs = (isEditing: boolean): BreadcrumbItem[] => [
     {
         title: 'Produtos',
         href: '/produtos',
     },
+    {
+        title: isEditing ? 'Editar' : 'Criar',
+        href: '#',
+    },
 ];
 
-export default function Index({ categorias }: { categorias: { value: string, label: string }[] }) {
+type Produto = {
+    id: number;
+    nome: string;
+    preco: number;
+    descricao?: string;
+    foto?: string;
+    categoria: string;
+    created_at: Date;
+    updated_at: Date;
+    deleted_at?: Date;
+};
 
-    const { data, setData, post, processing, errors, reset } = useForm<Required<{ nome: string, preco: number, descricao: string, foto: string, categoria: string }>>({
+export default function Edit({ produto, categorias }: { produto?: Produto, categorias: { value: string, label: string }[] }) {
+    const isEditing = !!produto;
+
+    const { data, setData, post, processing, errors, reset } = useForm<Required<{ nome: string, preco: number, descricao: string, foto: string, categoria: string }>>(
+        produto ? {
+        nome: produto.nome,
+        preco: produto.preco,
+        descricao: produto.descricao || '',
+        foto: produto.foto || '',
+        categoria: produto.categoria,
+    } : {
         nome: '',
         preco: 0,
         descricao: '',
@@ -28,14 +52,18 @@ export default function Index({ categorias }: { categorias: { value: string, lab
     });
     
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Produtos" />
+        <AppLayout breadcrumbs={getBreadcrumbs(isEditing)}>
+            <Head title={`${isEditing ? 'Editar' : 'Criar'} Produto`} />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                     <div className="col-span-1">
                         <form onSubmit={(e) => {
                             e.preventDefault();
-                            post(route('produtos.store'));
+                            if (isEditing) {
+                                post(route('produtos.update', produto!.id));
+                            } else {
+                                post(route('produtos.store'));
+                            }
                         }}>
                             <div className="space-y-5">
                                 <div className="grid gap-2">
@@ -129,7 +157,7 @@ export default function Index({ categorias }: { categorias: { value: string, lab
                             <div className="my-6 flex items-center justify-start">
                                 <Button className="w-full" disabled={processing}>
                                     {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                                    Salvar
+                                    {isEditing ? 'Salvar' : 'Criar'}
                                 </Button>
                             </div>
                         </form>

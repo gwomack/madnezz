@@ -24,3 +24,4 @@ yarn-error.log
 /.zed
 /.devcontainer/blueprint
 /.blueprint
+.DS_Store
