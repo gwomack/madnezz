@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\RedirectResponse;
 use App\Http\Resources\ProdutoResource;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Resources\ProdutoCollection;
 use App\Http\Requests\ProdutoStoreRequest;
 use App\Http\Requests\ProdutoUpdateRequest;
@@ -58,7 +59,12 @@ class ProdutoController extends Controller
 
     public function store(ProdutoStoreRequest $request): RedirectResponse
     {
-        $data = $request->validated();
+        $data = $request->safe()->except(['foto']);
+
+        if ($request->hasFile('foto')) {
+            $data['foto'] = $request->file('foto')->store('produtos', 'public');
+        }
+
         $produto = Produto::create($data);
 
         rebuild_produtos_cache_by_categoria($produto->categoria);
@@ -85,7 +91,16 @@ class ProdutoController extends Controller
 
     public function update(ProdutoUpdateRequest $request, Produto $produto): RedirectResponse
     {
-        $produto->update($request->validated());
+        $data = $request->safe()->except(['foto']);
+
+        if ($request->hasFile('foto')) {
+            if ($produto->foto) {
+                Storage::disk('public')->delete($produto->foto);
+            }
+            $data['foto'] = $request->file('foto')->store('produtos', 'public');
+        }
+
+        $produto->update($data);
 
         rebuild_produtos_cache_by_categoria($produto->categoria);
 

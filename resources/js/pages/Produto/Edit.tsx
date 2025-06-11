@@ -36,13 +36,15 @@ type Produto = {
 export default function Edit({ produto, categorias }: { produto?: Produto, categorias: { value: string, label: string }[] }) {
     const isEditing = !!produto;
 
-    const { data, setData, post, processing, errors, reset } = useForm<Required<{ nome: string, preco: number, descricao: string, foto: string, categoria: string }>>(
+    const { data, setData, post, put, processing, errors, reset } = 
+    useForm(
         produto ? {
         nome: produto.nome,
         preco: produto.preco,
         descricao: produto.descricao || '',
         foto: produto.foto || '',
         categoria: produto.categoria,
+        _method: isEditing ? 'PUT' : 'POST'
     } : {
         nome: '',
         preco: 0,
@@ -50,6 +52,8 @@ export default function Edit({ produto, categorias }: { produto?: Produto, categ
         foto: '',
         categoria: '',
     });
+
+    console.log(data.preco)
     
     return (
         <AppLayout breadcrumbs={getBreadcrumbs(isEditing)}>
@@ -58,6 +62,7 @@ export default function Edit({ produto, categorias }: { produto?: Produto, categ
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                     <div className="col-span-1">
                         <form onSubmit={(e) => {
+                            console.log(data)
                             e.preventDefault();
                             if (isEditing) {
                                 post(route('produtos.update', produto!.id));
@@ -90,6 +95,8 @@ export default function Edit({ produto, categorias }: { produto?: Produto, categ
                                         step="0.50"
                                         min="0"
                                         name="preco"
+                                        inputMode="decimal"
+                                        lang="pt-BR"
                                         value={data.preco}
                                         onChange={(e) => setData('preco', Number(e.target.value))}
                                         placeholder="Preço do produto"
@@ -119,10 +126,12 @@ export default function Edit({ produto, categorias }: { produto?: Produto, categ
                                     <Label htmlFor="foto">Foto</Label>
                                     <Input
                                         id="foto"
-                                        type="text"
+                                        type="file"
                                         name="foto"
-                                        value={data.foto}
-                                        onChange={(e) => setData('foto', e.target.value)}
+                                        onChange={(e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) setData('foto', file as any);
+                                    }}
                                         placeholder="Foto do produto"
                                     />
                                     {errors.foto && (

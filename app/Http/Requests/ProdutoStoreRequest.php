@@ -25,7 +25,7 @@ class ProdutoStoreRequest extends FormRequest
             'nome' => ['required', 'string', 'max:255'],
             'preco' => ['required', 'numeric', 'min:0.01'],
             'descricao' => ['nullable', 'text'],
-            'foto' => ['nullable', 'image', 'max:2048'],
+            'foto' => ['nullable', 'mimes:jpeg,jpg,png'],
             'categoria' => ['required', 'string', Rule::in(Categoria::cases())],
         ];
     }

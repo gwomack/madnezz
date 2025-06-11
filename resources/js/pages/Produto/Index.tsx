@@ -126,7 +126,16 @@ export default function Index({ produtos, categorias, filters }: { produtos: { d
                                             <TableCell>{produto.nome}</TableCell>
                                             <TableCell>{produto.preco}</TableCell>
                                             <TableCell>{produto.descricao}</TableCell>
-                                            <TableCell>{produto.foto}</TableCell>
+                                            <TableCell>
+                                                {produto.foto && (
+                                                    <img
+                                                        src={`/storage/${produto.foto}`}
+                                                        alt={produto.nome}
+                                                        width={50}
+                                                        height={50}
+                                                    />
+                                                )}
+                                            </TableCell>
                                             <TableCell>{produto.categoria}</TableCell>
                                             <TableCell>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(produto.created_at)).replace(',', '')}</TableCell>
                                             <TableCell>{new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(produto.updated_at)).replace(',', '')}</TableCell>

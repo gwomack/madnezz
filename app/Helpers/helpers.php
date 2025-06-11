@@ -16,7 +16,7 @@ if (!function_exists('preco_front_to_db')) {
 
 if (!function_exists('preco_db_to_front')) {
     function preco_db_to_front($preco): ?string {
-      $preco = Money::ofMinor($preco, 'BRL');
+      $preco = Money::ofMinor($preco, 'BRL')->getAmount();
       return $preco;
     }
 }
