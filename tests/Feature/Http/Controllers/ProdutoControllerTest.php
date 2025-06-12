@@ -1,144 +1,154 @@
 <?php
 
-namespace Tests\Feature\Http\Controllers;
+declare(strict_types = 1);
 
 use App\Models\Produto;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
+use App\Enums\Categoria;
 use JMac\Testing\Traits\AdditionalAssertions;
-use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use Inertia\Testing\AssertableInertia as Assert;
 
-/**
- * @see \App\Http\Controllers\ProdutoController
- */
-final class ProdutoControllerTest extends TestCase
-{
-    use AdditionalAssertions, RefreshDatabase, WithFaker;
-
-    #[Test]
-    public function index_displays_view(): void
-    {
-        $produtos = Produto::factory()->count(3)->create();
-
-        $response = $this->get(route('produtos.index'));
-
-        $response->assertOk();
-        $response->assertViewIs('produto.index');
-        $response->assertViewHas('produtos');
-    }
+uses(AdditionalAssertions::class);
+uses(Illuminate\Foundation\Testing\RefreshDatabase::class);
+uses(Illuminate\Foundation\Testing\WithFaker::class);
 
 
-    #[Test]
-    public function create_displays_view(): void
-    {
-        $response = $this->get(route('produtos.create'));
-
-        $response->assertOk();
-        $response->assertViewIs('produto.create');
-    }
+pest()->group('produtos');
 
 
-    #[Test]
-    public function store_uses_form_request_validation(): void
-    {
-        $this->assertActionUsesFormRequest(
-            \App\Http\Controllers\ProdutoController::class,
-            'store',
-            \App\Http\Requests\ProdutoStoreRequest::class
-        );
-    }
+test('index displays view', function () {
+    $size = 3;
+    $produtos = Produto::factory($size)->create();
+    set_all_produtos_cache();
 
-    #[Test]
-    public function store_saves_and_redirects(): void
-    {
-        $nome = fake()->word();
-        $preco = fake()->word();
+    $response = login()->get(route('produtos.index'));
 
-        $response = $this->post(route('produtos.store'), [
-            'nome' => $nome,
-            'preco' => $preco,
-        ]);
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page->component('Produto/Index')
+    ->has('produtos', function (Assert $page) use ($produtos, $size) {
+        $page->has('data', $size, function (Assert $page) use ($produtos) {
+            $data = $page->toArray()['props'];
+            // dd($data);
+            $produto = $produtos->where('id', $data['id'])->first();
+            $page->where('id', $produto->id);
+            $page->where('nome', $produto->nome);
+            $page->where('preco', (int) $produto->preco);
+            $page->where('descricao', $produto->descricao);
+            $page->where('foto', $produto->foto);
+            $page->where('categoria', $produto->categoria);
+            $page->etc();
+        });
+    }));
+});
 
-        $produtos = Produto::query()
-            ->where('nome', $nome)
-            ->where('preco', $preco)
-            ->get();
-        $this->assertCount(1, $produtos);
-        $produto = $produtos->first();
+test('create displays view', function () {
+    $response = login()->get(route('produtos.create'));
 
-        $response->assertRedirect(route('produtos.index'));
-        $response->assertSessionHas('produto.id', $produto->id);
-    }
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page->component('Produto/Edit'));
+});
 
+test('store uses form request validation', function () {
+    $this->assertActionUsesFormRequest(
+        App\Http\Controllers\ProdutoController::class,
+        'store',
+        App\Http\Requests\ProdutoStoreRequest::class
+    );
+});
 
-    #[Test]
-    public function show_displays_view(): void
-    {
-        $produto = Produto::factory()->create();
+test('store saves and redirects', function () {
+    $produto = Produto::factory()->make([
+        'foto' => null,
+    ]);
+    $produto = $produto->toArray();
 
-        $response = $this->get(route('produtos.show', $produto));
+    $response = login()->post(route('produtos.store'), $produto);
 
-        $response->assertOk();
-        $response->assertViewIs('produto.show');
-        $response->assertViewHas('produto');
-    }
+    $produtos = Produto::query()
+        ->where('nome', $produto['nome'])
+        ->where('preco', preco_front_to_db($produto['preco']))
+        ->get();
+    expect($produtos)->toHaveCount(1);
+    $produto = $produtos->first();
 
+    $response->assertRedirect(route('produtos.index'));
+    $response->assertSessionHas('produto.id', $produto->id);
+});
 
-    #[Test]
-    public function edit_displays_view(): void
-    {
-        $produto = Produto::factory()->create();
+test('show displays view', function () {
+    $produto = Produto::factory()->create();
 
-        $response = $this->get(route('produtos.edit', $produto));
+    $response = login()->get(route('produtos.show', $produto));
 
-        $response->assertOk();
-        $response->assertViewIs('produto.edit');
-        $response->assertViewHas('produto');
-    }
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page->component('Produto/Show')
+    ->has('produto', function (Assert $page) use ($produto) {
+        $page->where('id', $produto->id);
+        $page->where('nome', $produto->nome);
+        $page->where('preco', (int) $produto->preco);
+        $page->where('descricao', $produto->descricao);
+        $page->where('foto', $produto->foto);
+        $page->where('categoria', $produto->categoria);
+        $page->etc();
+    }));
+});
 
+test('edit displays view', function () {
+    $produto = Produto::factory()->create();
 
-    #[Test]
-    public function update_uses_form_request_validation(): void
-    {
-        $this->assertActionUsesFormRequest(
-            \App\Http\Controllers\ProdutoController::class,
-            'update',
-            \App\Http\Requests\ProdutoUpdateRequest::class
-        );
-    }
+    $response = login()->get(route('produtos.edit', $produto));
 
-    #[Test]
-    public function update_redirects(): void
-    {
-        $produto = Produto::factory()->create();
-        $nome = fake()->word();
-        $preco = fake()->word();
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page->component('Produto/Edit')
+    ->has('produto', function (Assert $page) use ($produto) {
+        $page->where('id', $produto->id);
+        $page->where('nome', $produto->nome);
+        $page->where('preco', (int) $produto->preco);
+        $page->where('descricao', $produto->descricao);
+        $page->where('foto', $produto->foto);
+        $page->where('categoria', $produto->categoria);
+        $page->etc();
+    }));
+});
 
-        $response = $this->put(route('produtos.update', $produto), [
-            'nome' => $nome,
-            'preco' => $preco,
-        ]);
+test('update uses form request validation', function () {
+    $this->assertActionUsesFormRequest(
+        App\Http\Controllers\ProdutoController::class,
+        'update',
+        App\Http\Requests\ProdutoUpdateRequest::class
+    );
+});
 
-        $produto->refresh();
+test('update redirects', function () {
+    $produto = Produto::factory()->create();
+    $nome    = fake()->name();
+    $preco   = fake()->randomFloat(2, 0, 100);
+    $descricao = fake()->sentence();
+    $categoria = fake()->randomElement(Categoria::toSelect())["value"];
 
-        $response->assertRedirect(route('produtos.index'));
-        $response->assertSessionHas('produto.id', $produto->id);
+    $response = login()->put(route('produtos.update', $produto), [
+        'nome'  => $nome,
+        'preco' => $preco,
+        'descricao' => $descricao,
+        'categoria' => $categoria,
+    ]);
 
-        $this->assertEquals($nome, $produto->nome);
-        $this->assertEquals($preco, $produto->preco);
-    }
+    $produto->refresh();
 
+    $response->assertRedirect(route('produtos.index'));
+    $response->assertSessionHas('produto.id', $produto->id);
 
-    #[Test]
-    public function destroy_deletes_and_redirects(): void
-    {
-        $produto = Produto::factory()->create();
+    expect($produto->nome)->toBe($nome);
+    expect($produto->preco)->toBe($preco);
+    expect($produto->descricao)->toBe($descricao);
+    expect($produto->categoria)->toBe(Categoria::from($categoria));
+});
 
-        $response = $this->delete(route('produtos.destroy', $produto));
+test('destroy deletes and redirects', function () {
+    $produto = Produto::factory()->create();
 
-        $response->assertRedirect(route('produtos.index'));
+    $response = login()->delete(route('produtos.destroy', $produto));
 
-        $this->assertSoftDeleted($produto);
-    }
-}
+    $response->assertRedirect(route('produtos.index'));
+
+    $this->assertSoftDeleted($produto);
+});

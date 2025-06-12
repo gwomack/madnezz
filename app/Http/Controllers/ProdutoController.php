@@ -1,21 +1,19 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace App\Http\Controllers;
 
-use Inertia\Inertia;
-use Inertia\Response;
-use App\Models\Produto;
 use App\Enums\Categoria;
-use Illuminate\View\View;
-use Illuminate\Support\Arr;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Http\RedirectResponse;
-use App\Http\Resources\ProdutoResource;
-use Illuminate\Support\Facades\Storage;
-use App\Http\Resources\ProdutoCollection;
 use App\Http\Requests\ProdutoStoreRequest;
 use App\Http\Requests\ProdutoUpdateRequest;
+use App\Http\Resources\ProdutoCollection;
+use App\Models\Produto;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class ProdutoController extends Controller
 {
@@ -26,27 +24,28 @@ class ProdutoController extends Controller
         } else {
             $produtos = get_all_produtos_cache_by_categoria()->filter()->flatten();
         }
-        
+
         if ($nome = $request->get('nome')) {
             $produtos = $produtos->filter(fn (Produto $produto) => str_contains($produto->nome, $nome))->values();
         }
-        
+
         if ($request->get('preco') && $preco = preco_front_to_db($request->get('preco'))) {
-            $produtos = $produtos->filter(function (Produto $produto) use ($preco) { 
-                $preco_db = $produto->getRawOriginal('preco');
-                $compara = $preco_db == $preco;
+            $produtos = $produtos->filter(function (Produto $produto) use ($preco) {
+                $preco_db = (float) $produto->getRawOriginal('preco');
+                $compara  = $preco_db == $preco;
+
                 return $compara;
             })->values();
         }
-        
+
         // $query = Produto::query();
         // $produtos = $query->paginate(10);
         $produtos = ProdutoCollection::make($produtos);
 
         return Inertia::render('Produto/Index', [
-            'produtos' => $produtos,
+            'produtos'   => $produtos,
             'categorias' => Categoria::toSelect(),
-            'filters' => $request->only(['nome', 'preco'])
+            'filters'    => $request->only(['nome', 'preco']),
         ]);
     }
 
@@ -84,7 +83,7 @@ class ProdutoController extends Controller
     public function edit(Request $request, Produto $produto): Response
     {
         return Inertia::render('Produto/Edit', [
-            'produto' => $produto,
+            'produto'    => $produto,
             'categorias' => Categoria::toSelect(),
         ]);
     }

@@ -123,7 +123,11 @@ export default function Index({ produtos, categorias, filters }: { produtos: { d
                                 produtos.data.map((produto) => (
                                     <TableBody key={produto.id}>
                                         <TableRow>
-                                            <TableCell>{produto.nome}</TableCell>
+                                            <TableCell>
+                                                <Link href={route(`produtos.show`, produto.id)}>
+                                                    {produto.nome}
+                                                </Link>
+                                            </TableCell>
                                             <TableCell>{produto.preco}</TableCell>
                                             <TableCell>{produto.descricao}</TableCell>
                                             <TableCell>

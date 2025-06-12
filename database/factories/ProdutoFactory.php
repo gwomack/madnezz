@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Database\Factories;
 
-use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 use App\Models\Produto;
+use App\Enums\Categoria;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 class ProdutoFactory extends Factory
 {
@@ -21,8 +23,11 @@ class ProdutoFactory extends Factory
     public function definition(): array
     {
         return [
-            'nome' => fake()->word(),
-            'preco' => fake()->word(),
+            'nome'      => fake()->name(),
+            'preco'     => fake()->numberBetween(1, 100, true),
+            'descricao' => fake()->sentence(),
+            'foto'      => fake()->imageUrl(),
+            'categoria' => fake()->randomElement(Categoria::cases()),
         ];
     }
 }

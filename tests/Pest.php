@@ -2,6 +2,8 @@
 
 declare(strict_types = 1);
 
+use App\Models\User;
+
 /*
 |--------------------------------------------------------------------------
 | Test Case
@@ -43,7 +45,9 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function login()
 {
-    // ..
+    return test()->actingAs(
+        User::factory()->create()
+    );
 }
