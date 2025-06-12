@@ -1,0 +1,38 @@
+name: Test and Deploy
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
+      - main
+  workflow_run:
+    workflows: ["tests"]
+    types:
+      - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v0.1.3
+        env:
+          DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          port: ${{ secrets.VPS_PORT || 22 }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script_stop: true # Stop on error
+          timeout: 10m
+          envs: DOTENV_PRIVATE_KEY_PRODUCTION
+          script: |
+            ${{ vars.SERVER_SCRIPT }}
