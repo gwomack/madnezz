@@ -112,6 +112,8 @@ class ProdutoController extends Controller
     {
         $produto->delete();
 
+        rebuild_produtos_cache_by_categoria($produto->categoria);
+
         return redirect()->route('produtos.index');
     }
 }

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 use App\Models\Produto;
 use App\Enums\Categoria;
+use Illuminate\Support\Facades\Cache;
 use JMac\Testing\Traits\AdditionalAssertions;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -151,4 +152,42 @@ test('destroy deletes and redirects', function () {
     $response->assertRedirect(route('produtos.index'));
 
     $this->assertSoftDeleted($produto);
+});
+
+test('checks if cache was updated when produto is stored', function () {
+    $produtos = Produto::factory(2)->make([
+        'foto' => null,
+    ]);
+
+    foreach($produtos as $produto) {
+        $response = login()->post(route('produtos.store'), $produto->toArray());
+        $produtos_cat = Produto::where('categoria', $produto->categoria)->get();
+        expect(Cache::tags('test')->get($produto->categoria->value))
+        ->toEqual($produtos_cat);
+    }
+});
+
+test('checks if cache was updated when produto is updated', function () {
+    $produtos = Produto::factory(2)->create([
+        'foto' => null,
+    ]);
+
+    foreach($produtos as $produto) {
+        $response = login()->put(route('produtos.update', $produto), $produto->toArray());
+        $produtos_cat = Produto::where('categoria', $produto->categoria)->get();
+        expect(Cache::tags('test')->get($produto->categoria->value))
+        ->toEqual($produtos_cat);
+    }
+});
+
+test('checks if cache was updated when produto was deleted', function () {
+    $produtos = Produto::factory(2)->create([
+        'categoria' => $categoria = Categoria::from('eletronicos'),
+        'foto' => null,
+    ]);
+
+    $response = login()->delete(route('produtos.destroy', $produtos->first()->id));
+    $produtos_cat = Produto::where('categoria', $categoria->value)->get();
+    expect(Cache::tags('test')->get($categoria->value))
+    ->toHaveCount(1);
 });
